@@ -100,3 +100,7 @@ Sau khi chạy, thư mục `outputs` sẽ có:
 ## Ghi chú
 
 Code tự hiện thực Apriori, không cần `mlxtend`. Baseline User-based CF dùng `scikit-learn`.
+
+## Tài liệu báo cáo code
+
+Xem file `CODE_SUMMARY_REPORT.md` để lấy phần tóm tắt toàn bộ mã nguồn, pipeline, thuật toán, API và giao diện cho báo cáo.
