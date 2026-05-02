@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MovieLens Apriori Recommender</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark">ML</span>
+          <div>
+            <strong>MovieLens</strong>
+            <span>Apriori Recommender</span>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <a class="active" href="#recommend">Đề xuất</a>
+          <a href="#new-user">User mới</a>
+          <a href="#overview">Tổng quan</a>
+          <a href="#rules">Luật kết hợp</a>
+          <a href="#charts">Biểu đồ</a>
+        </nav>
+
+        <div class="dataset-card">
+          <span>Dataset</span>
+          <strong>ml-latest-small</strong>
+          <p>MovieLens 100K từ Kaggle, gồm ratings, movies, tags và links.</p>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Khai phá dữ liệu với Apriori</p>
+            <h1>Hệ thống đề xuất phim cá nhân hóa</h1>
+          </div>
+          <div class="status" id="appStatus">Đang tải dữ liệu...</div>
+        </header>
+
+        <section id="overview" class="metrics-grid" aria-label="Thống kê dữ liệu">
+          <article class="metric">
+            <span>Ratings</span>
+            <strong id="metricRatings">-</strong>
+          </article>
+          <article class="metric">
+            <span>Users</span>
+            <strong id="metricUsers">-</strong>
+          </article>
+          <article class="metric">
+            <span>Movies</span>
+            <strong id="metricMovies">-</strong>
+          </article>
+          <article class="metric">
+            <span>Rules</span>
+            <strong id="metricRules">-</strong>
+          </article>
+          <article class="metric">
+            <span>Precision@10</span>
+            <strong id="metricPrecision">-</strong>
+          </article>
+        </section>
+
+        <section id="recommend" class="workbench">
+          <div class="panel controls-panel">
+            <div class="panel-head">
+              <div>
+                <h2>User có sẵn</h2>
+                <p>Gợi ý phim dựa trên các phim user đã đánh giá từ 4 sao trở lên.</p>
+              </div>
+            </div>
+
+            <div class="control-grid">
+              <label>
+                User ID
+                <input id="userInput" type="number" min="1" value="1" />
+              </label>
+              <label>
+                Top-N
+                <select id="topNSelect">
+                  <option value="5">5</option>
+                  <option value="10" selected>10</option>
+                  <option value="15">15</option>
+                  <option value="20">20</option>
+                  <option value="30">30</option>
+                </select>
+              </label>
+              <button id="recommendButton" type="button">Đề xuất phim</button>
+            </div>
+
+            <div class="user-strip">
+              <div>
+                <span>Ratings</span>
+                <strong id="userRatings">-</strong>
+              </div>
+              <div>
+                <span>Liked</span>
+                <strong id="userLiked">-</strong>
+              </div>
+              <div>
+                <span>Avg rating</span>
+                <strong id="userAverage">-</strong>
+              </div>
+              <div>
+                <span>Latest</span>
+                <strong id="userLatest">-</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel recommendations-panel">
+            <div class="panel-head">
+              <div>
+                <h2>Top phim đề xuất</h2>
+                <p id="recommendationMeta">Chọn user để xem danh sách gợi ý.</p>
+              </div>
+            </div>
+            <div id="recommendations" class="recommendation-list"></div>
+          </div>
+        </section>
+
+        <section id="new-user" class="panel new-user-panel">
+          <div class="panel-head">
+            <div>
+              <h2>Nhập thông tin user mới</h2>
+              <p>Chọn các phim user thích để kiểm tra hệ thống đề xuất.</p>
+            </div>
+          </div>
+
+          <div class="new-user-grid">
+            <div class="profile-form">
+              <div class="control-grid">
+                <label>
+                  Tên user
+                  <input id="customName" type="text" placeholder="Ví dụ: Nguyễn Văn A" />
+                </label>
+                <label>
+                  Top-N
+                  <select id="customTopNSelect">
+                    <option value="5">5</option>
+                    <option value="10" selected>10</option>
+                    <option value="15">15</option>
+                    <option value="20">20</option>
+                    <option value="30">30</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="movie-search">
+                <label>
+                  Tìm phim
+                  <input id="movieSearchInput" type="search" placeholder="Nhập tên phim..." />
+                </label>
+                <button id="movieSearchButton" type="button" class="secondary-button">Tìm phim</button>
+              </div>
+
+              <div id="movieSearchResults" class="movie-results"></div>
+            </div>
+
+            <div class="selected-box">
+              <div class="selected-head">
+                <div>
+                  <h3>Phim đã chọn</h3>
+                  <span id="customLikedCount">0 phim</span>
+                </div>
+                <button id="customRecommendButton" type="button">Kiểm tra hệ thống</button>
+              </div>
+              <div id="customLikedMovies" class="selected-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="split">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <h2>Phim user đã thích</h2>
+                <p>Hiển thị tối đa 50 phim rating cao nhất của user.</p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Phim</th>
+                    <th>Thể loại</th>
+                    <th>Rating</th>
+                  </tr>
+                </thead>
+                <tbody id="likedMovies"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="rules" class="panel">
+            <div class="panel-head">
+              <div>
+                <h2>Luật kết hợp nổi bật</h2>
+                <p>Sắp xếp theo score = confidence × lift.</p>
+              </div>
+            </div>
+            <div id="rulesList" class="rules-list"></div>
+          </div>
+        </section>
+
+        <section id="charts" class="charts">
+          <div class="panel chart-panel">
+            <div class="panel-head">
+              <div>
+                <h2>Phân phối rating</h2>
+                <p>Tần suất từng mức đánh giá trong dataset.</p>
+              </div>
+            </div>
+            <img src="/outputs/rating_distribution.png" alt="Rating distribution" />
+          </div>
+          <div class="panel chart-panel">
+            <div class="panel-head">
+              <div>
+                <h2>Top thể loại</h2>
+                <p>Các thể loại phim xuất hiện nhiều nhất.</p>
+              </div>
+            </div>
+            <img src="/outputs/top_genres.png" alt="Top genres" />
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="/static/app.js"></script>
+  </body>
+</html>
